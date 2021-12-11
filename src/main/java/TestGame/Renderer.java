@@ -32,6 +32,7 @@ public class Renderer {
         shaderProgram.Link();
         shaderProgram.CreateUniform("projectionMatrix");
         shaderProgram.CreateUniform("worldMatrix");
+        shaderProgram.CreateUniform("texture_sampler");
         window.setClearColor(0.0f, 0.0f, 0.0f,0.0f);
     }
 
@@ -51,6 +52,8 @@ public class Renderer {
                 window.getHeight(),
                 Z_NEAR, Z_FAR);
         shaderProgram.SetUniform("projectionMatrix", projectionMatrix);
+
+        shaderProgram.SetUniform("texture_sampler", 0);
 
         for(GameItem gameItem : gameItems) {
             //Set world matrix for this item

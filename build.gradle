@@ -20,6 +20,7 @@ test {
 project.ext.lwjglVersion = "3.3.0"
 project.ext.jomlVersion = "1.10.2"
 project.ext.lwjglNatives = "natives-windows"
+project.ext.pngDecoderVersion = "1.0"
 
 
 dependencies {
@@ -40,4 +41,5 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
     implementation "org.joml:joml:${jomlVersion}"
+    implementation "org.l33tlabs.twl:pngdecoder:${pngDecoderVersion}"
 }
