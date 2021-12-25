@@ -1,42 +1,55 @@
 package TestGame;
+import Engine.Camera.Camera;
 import Engine.GameObjects.GameItem;
+import Engine.Light.PointLight;
 import Engine.Mesh.Mesh;
 import Engine.Shader.ShaderProgram;
 import Engine.Transformations.Transformation;
 import Engine.Utils.LoadResource;
 import Engine.Window.Window;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
 
 public class Renderer {
 
-    ShaderProgram shaderProgram;
-
     private static final float FOV = (float) Math.toRadians(60.0f);
     private static final float Z_NEAR = 0.01f;
     private static final float Z_FAR = 1000.0f;
-    private Matrix4f projectionMatrix;
     private Transformation transformation;
+    private ShaderProgram shaderProgram;
+    private float specularPower;
 
     public Renderer() {
+
         transformation = new Transformation();
+        specularPower = 10.0f;
     }
 
     public void init(Window window) throws Exception {
         shaderProgram = new ShaderProgram();
-
-        shaderProgram.CreateVertexShader(LoadResource.loadResource("C:\\Dev\\GameEngine\\src\\main\\resources\\vertex.vs.glsl"));
-        shaderProgram.CreateFragmentShader(LoadResource.loadResource("C:\\Dev\\GameEngine\\src\\main\\resources\\fragment.fs.glsl"));
+        shaderProgram.CreateVertexShader(LoadResource.loadResource("C:\\Dev\\GameEngine\\src\\main\\resources\\Shaders\\vertex.vs.glsl"));
+        shaderProgram.CreateFragmentShader(LoadResource.loadResource("C:\\Dev\\GameEngine\\src\\main\\resources\\Shaders\\fragment.fs.glsl"));
         shaderProgram.Link();
+
         shaderProgram.CreateUniform("projectionMatrix");
-        shaderProgram.CreateUniform("worldMatrix");
+        shaderProgram.CreateUniform("modelViewMatrix");
         shaderProgram.CreateUniform("texture_sampler");
-        window.setClearColor(0.0f, 0.0f, 0.0f,0.0f);
+
+        //Create Uniform for Materials
+        shaderProgram.CreateMaterialUniform("material");
+        //Create lighting related uniforms
+        shaderProgram.CreateUniform("specularPower");
+        shaderProgram.CreateUniform("ambientLight");
+        shaderProgram.CreatePointLightUniform("pointLight");
+
     }
 
-    public void render(Window window, GameItem[] gameItems)
+    public void render(Window window, Camera camera, GameItem[] gameItems, Vector3f ambientLight,
+                       PointLight pointLight)
     {
         clear();
 
@@ -53,19 +66,30 @@ public class Renderer {
                 Z_NEAR, Z_FAR);
         shaderProgram.SetUniform("projectionMatrix", projectionMatrix);
 
+        Matrix4f viewMatrix = transformation.getViewMatrix(camera);
+        // Update Light Uniforms
+        shaderProgram.SetUniform("ambientLight", ambientLight);
+        shaderProgram.SetUniform("specularPower", specularPower);
+        // Get a copy of the light object and transform its position to view coordinates
+        PointLight currPointLight = new PointLight(pointLight);
+        Vector3f lightPos = currPointLight.getPosition();
+        Vector4f aux = new Vector4f(lightPos, 1);
+        aux.mul(viewMatrix);
+        lightPos.x = aux.x;
+        lightPos.y = aux.y;
+        lightPos.z = aux.z;
+        shaderProgram.SetUniform("pointLight", currPointLight);
+
         shaderProgram.SetUniform("texture_sampler", 0);
 
         for(GameItem gameItem : gameItems) {
             //Set world matrix for this item
-            Matrix4f worldMatrix =
-                    transformation.getWorldMatrix(
-                            gameItem.getPosition(),
-                            gameItem.getRotation(),
-                            gameItem.getScale()
-                    );
-            shaderProgram.SetUniform("worldMatrix", worldMatrix);
+            Mesh mesh = gameItem.getMesh();
+            Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+            shaderProgram.SetUniform("modelViewMatrix", modelViewMatrix);
+            shaderProgram.SetUniform("material", mesh.getMaterial());
             //Render the mesh for this game items.
-            gameItem.getMesh().render();
+            mesh.render();
         }
 
         shaderProgram.UnBind();

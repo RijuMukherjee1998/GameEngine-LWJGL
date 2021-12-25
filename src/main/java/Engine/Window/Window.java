@@ -5,10 +5,11 @@ import org.lwjgl.opengl.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
 
-    private static final long NULL = 0;
+    //private static final long NULL = 0;
     private  int width, height;
     private final String title;
     private boolean vSync;
@@ -22,11 +23,6 @@ public class Window {
         this.width = width;
         this.height = height;
         this.vSync = vSync;
-
-        r = 1.0f;
-        g = 1.0f;
-        b = 1.0f;
-        a = 1.0f;
     }
 
     public void init() {
@@ -47,10 +43,9 @@ public class Window {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-        glfwWindowHint(GLFW_MAXIMIZED, GL_FALSE);
 
         // create  the window
-        windowHandle = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL );
+        windowHandle = glfwCreateWindow(width, height, title, NULL, NULL );
 
         if (windowHandle == NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
@@ -98,6 +93,8 @@ public class Window {
 
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glEnable(GL_DEPTH_TEST);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     }
 
@@ -144,6 +141,10 @@ public class Window {
     public void update() {
         glfwSwapBuffers(windowHandle);
         glfwPollEvents();
+    }
+
+    public long getWindowHandle() {
+        return windowHandle;
     }
 }
 

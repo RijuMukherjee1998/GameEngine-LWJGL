@@ -7,8 +7,7 @@ public class Main {
         try {
             boolean vSync = true;
             IGameLogic gameLogic = new DummyGame();
-            GameEngine gameEng = new GameEngine("DummyGame", 600,
-                    400, vSync, gameLogic);
+            GameEngine gameEng = new GameEngine("DummyGame", 600, 480, vSync, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();
