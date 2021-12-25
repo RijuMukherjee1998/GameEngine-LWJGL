@@ -1,5 +1,6 @@
 package Engine.Shader;
 
+import Engine.Light.DirectionalLight;
 import Engine.Light.PointLight;
 import Engine.Materials.Material;
 import org.joml.Matrix4f;
@@ -63,6 +64,12 @@ public class ShaderProgram {
          uniforms.put(uniformName, uniformLocation);
      }
 
+     public void CreateDirectionalLightUniform(String uniformName) throws Exception
+     {
+         CreateUniform(uniformName + ".colour");
+         CreateUniform(uniformName + ".direction");
+         CreateUniform(uniformName + ".intensity");
+     }
      public void CreatePointLightUniform(String uniformName) throws Exception
      {
         CreateUniform(uniformName + ".colour");
@@ -122,6 +129,11 @@ public class ShaderProgram {
          SetUniform(uniformName + ".specular", material.getSpecularColour());
          SetUniform(uniformName + ".hasTexture", material.isTextured() ? 1:0);
          SetUniform(uniformName + ".reflectance", material.getReflectance());
+     }
+     public void SetUniform(String uniformName, DirectionalLight dirLight) {
+        SetUniform(uniformName + ".colour" ,dirLight.getColor());
+        SetUniform(uniformName + ".direction", dirLight.getDirection());
+        SetUniform(uniformName + ".intensity", dirLight.getIntensity());
      }
 
 

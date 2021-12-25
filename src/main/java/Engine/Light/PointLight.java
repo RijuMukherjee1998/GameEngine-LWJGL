@@ -37,7 +37,7 @@ public class PointLight {
         return position;
     }
 
-    public void setPosition() {
+    public void setPosition(Vector3f position) {
         this.position = position;
     }
 
@@ -45,7 +45,7 @@ public class PointLight {
         return intensity;
     }
 
-    public void setIntensity() {
+    public void setIntensity(float intensity) {
         this.intensity = intensity;
     }
 

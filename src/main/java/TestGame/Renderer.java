@@ -1,6 +1,7 @@
 package TestGame;
 import Engine.Camera.Camera;
 import Engine.GameObjects.GameItem;
+import Engine.Light.DirectionalLight;
 import Engine.Light.PointLight;
 import Engine.Mesh.Mesh;
 import Engine.Shader.ShaderProgram;
@@ -45,11 +46,12 @@ public class Renderer {
         shaderProgram.CreateUniform("specularPower");
         shaderProgram.CreateUniform("ambientLight");
         shaderProgram.CreatePointLightUniform("pointLight");
+        shaderProgram.CreateDirectionalLightUniform("directionalLight");
 
     }
 
     public void render(Window window, Camera camera, GameItem[] gameItems, Vector3f ambientLight,
-                       PointLight pointLight)
+                       PointLight pointLight, DirectionalLight directionalLight)
     {
         clear();
 
@@ -70,6 +72,7 @@ public class Renderer {
         // Update Light Uniforms
         shaderProgram.SetUniform("ambientLight", ambientLight);
         shaderProgram.SetUniform("specularPower", specularPower);
+
         // Get a copy of the light object and transform its position to view coordinates
         PointLight currPointLight = new PointLight(pointLight);
         Vector3f lightPos = currPointLight.getPosition();
@@ -80,6 +83,12 @@ public class Renderer {
         lightPos.z = aux.z;
         shaderProgram.SetUniform("pointLight", currPointLight);
 
+        //Get a copy of the directional light object and transform its position to view coordinates.
+        DirectionalLight currDirLight = new DirectionalLight(directionalLight);
+        Vector4f dir = new Vector4f(currDirLight.getDirection(), 0);
+        dir.mul(viewMatrix);
+        currDirLight.setDirection(new Vector3f(dir.x, dir.y, dir.z));
+        shaderProgram.SetUniform("directionalLight", currDirLight);
         shaderProgram.SetUniform("texture_sampler", 0);
 
         for(GameItem gameItem : gameItems) {
