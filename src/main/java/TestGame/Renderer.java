@@ -3,6 +3,7 @@ import Engine.Camera.Camera;
 import Engine.GameObjects.GameItem;
 import Engine.Light.DirectionalLight;
 import Engine.Light.PointLight;
+import Engine.Light.SpotLight;
 import Engine.Mesh.Mesh;
 import Engine.Shader.ShaderProgram;
 import Engine.Transformations.Transformation;
@@ -46,12 +47,13 @@ public class Renderer {
         shaderProgram.CreateUniform("specularPower");
         shaderProgram.CreateUniform("ambientLight");
         shaderProgram.CreatePointLightUniform("pointLight");
+        shaderProgram.CreateSpotLightUniform("spotLight");
         shaderProgram.CreateDirectionalLightUniform("directionalLight");
 
     }
 
     public void render(Window window, Camera camera, GameItem[] gameItems, Vector3f ambientLight,
-                       PointLight pointLight, DirectionalLight directionalLight)
+                       PointLight pointLight, SpotLight spotLight, DirectionalLight directionalLight)
     {
         clear();
 
@@ -83,9 +85,23 @@ public class Renderer {
         lightPos.z = aux.z;
         shaderProgram.SetUniform("pointLight", currPointLight);
 
+        // Get a copy of the light object and transform its position to view coordinates
+        SpotLight currSpotLight = new SpotLight(spotLight);
+        Vector4f dir = new Vector4f(currSpotLight.getConeDirection(),0);
+        dir.mul(viewMatrix);
+        currSpotLight.setConeDirection(new Vector3f(dir.x, dir.y, dir.z));
+
+        Vector3f spotLightPos = currSpotLight.getPointLight().getPosition();
+        Vector4f auxSpot = new Vector4f(spotLightPos, 1);
+        auxSpot.mul(viewMatrix);
+        spotLightPos.x = auxSpot.x;
+        spotLightPos.y = auxSpot.y;
+        spotLightPos.z = auxSpot.z;
+        shaderProgram.SetUniform("spotLight", currSpotLight);
+
         //Get a copy of the directional light object and transform its position to view coordinates.
         DirectionalLight currDirLight = new DirectionalLight(directionalLight);
-        Vector4f dir = new Vector4f(currDirLight.getDirection(), 0);
+        dir = new Vector4f(currDirLight.getDirection(), 0);
         dir.mul(viewMatrix);
         currDirLight.setDirection(new Vector3f(dir.x, dir.y, dir.z));
         shaderProgram.SetUniform("directionalLight", currDirLight);

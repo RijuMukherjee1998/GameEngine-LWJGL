@@ -2,6 +2,7 @@ package Engine.Shader;
 
 import Engine.Light.DirectionalLight;
 import Engine.Light.PointLight;
+import Engine.Light.SpotLight;
 import Engine.Materials.Material;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -80,6 +81,13 @@ public class ShaderProgram {
         CreateUniform(uniformName + ".att.exponent");
      }
 
+     public void CreateSpotLightUniform(String uniformName) throws Exception
+     {
+         CreatePointLightUniform(uniformName + ".pl");
+         CreateUniform(uniformName + ".conedir");
+         CreateUniform(uniformName + ".cutoff");
+     }
+
      public void CreateMaterialUniform(String uniformName) throws Exception
      {
          CreateUniform(uniformName + ".ambient");
@@ -122,6 +130,12 @@ public class ShaderProgram {
          SetUniform(uniformName + ".att.exponent", att.getExponent());
      }
 
+     public void SetUniform(String uniformName, SpotLight spotLight)
+     {
+         SetUniform(uniformName + ".pl", spotLight.getPointLight());
+         SetUniform(uniformName + ".conedir", spotLight.getConeDirection());
+         SetUniform(uniformName + ".cutoff", spotLight.getCutOff());
+     }
      public void SetUniform(String uniformName, Material material)
      {
          SetUniform(uniformName + ".ambient", material.getAmbientColour());
