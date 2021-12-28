@@ -80,12 +80,25 @@ public class ShaderProgram {
         CreateUniform(uniformName + ".att.linear");
         CreateUniform(uniformName + ".att.exponent");
      }
-
+    public void CreatePointLightListUniform(String uniformName, int size) throws Exception
+    {
+        for (int i = 0; i<size; i++)
+        {
+            CreatePointLightUniform(uniformName + "[" + i + "]");
+        }
+    }
      public void CreateSpotLightUniform(String uniformName) throws Exception
      {
          CreatePointLightUniform(uniformName + ".pl");
          CreateUniform(uniformName + ".conedir");
          CreateUniform(uniformName + ".cutoff");
+     }
+     public void CreateSpotLightListUniform(String uniformName, int size) throws Exception
+     {
+         for (int i = 0; i<size; i++)
+         {
+             CreateSpotLightUniform(uniformName + "[" + i + "]");
+         }
      }
 
      public void CreateMaterialUniform(String uniformName) throws Exception
@@ -149,6 +162,31 @@ public class ShaderProgram {
         SetUniform(uniformName + ".direction", dirLight.getDirection());
         SetUniform(uniformName + ".intensity", dirLight.getIntensity());
      }
+
+     public void SetUniform(String uniformName, PointLight[] pointLights)
+     {
+        int numLights = pointLights != null ? pointLights.length : 0;
+        for(int i = 0; i<numLights; i++)
+        {
+            SetUniform(uniformName, pointLights[i], i);
+        }
+     }
+     public void SetUniform(String uniformName, PointLight pointLight, int pos)
+     {
+        SetUniform(uniformName + "[" + pos + "]", pointLight);
+     }
+    public void SetUniform(String uniformName, SpotLight[] spotLights)
+    {
+        int numLights = spotLights != null ? spotLights.length : 0;
+        for(int i = 0; i<numLights; i++)
+        {
+            SetUniform(uniformName, spotLights[i], i);
+        }
+    }
+    public void SetUniform(String uniformName, SpotLight spotLight, int pos)
+    {
+        SetUniform(uniformName + "[" + pos + "]", spotLight);
+    }
 
 
 
