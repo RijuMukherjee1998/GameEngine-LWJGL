@@ -7,13 +7,20 @@ import Engine.IGameLogic;
 import Engine.Inputs.MouseInput;
 import Engine.Light.DirectionalLight;
 import Engine.Light.PointLight;
+import Engine.Light.SceneLight;
 import Engine.Light.SpotLight;
 import Engine.Materials.Material;
 import Engine.Mesh.Mesh;
+import Engine.Render.Renderer;
 import Engine.Textures.Texture;
 import Engine.Window.Window;
+import TestGame.GameItemGenerators.BunnyGenrator.BunnyGenerator;
+import TestGame.GameItemGenerators.TerrainGenerator.Terrain;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+
+import java.util.List;
+import java.util.Vector;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -27,16 +34,19 @@ public class DummyGame implements IGameLogic {
 
     private  Vector3f lightPosInc;
 
-    private GameItem[] gameItems;
+    private List<GameItem> gameItems;
+
+    private SceneLight sceneLight;
 
     private Vector3f ambientLight;
 
-    private PointLight[] pointLightList;
+    private List<PointLight> pointLightList;
 
-    private SpotLight[] spotLightList;
+    private List<SpotLight> spotLightList;
 
     private DirectionalLight directionalLight;
 
+    private Hud hud;
     private float lightPosZ;
 
     private float lightAngle;
@@ -46,6 +56,7 @@ public class DummyGame implements IGameLogic {
 
     private static final float CAMERA_POS_STEP = 0.05f;
     private static final float MOUSE_SENSITIVITY = 0.2f;
+
 
     public DummyGame() {
 
@@ -58,19 +69,28 @@ public class DummyGame implements IGameLogic {
     @Override
     public void init(Window window) throws Exception {
         renderer.init(window);
-        float reflectance = 10.0f;
-        Mesh mesh = OBJLoader.loadMesh("C:\\Dev\\GameEngine\\src\\main\\resources\\Models\\cube.obj");
+        Mesh cubeMesh = OBJLoader.loadMesh("C:\\Dev\\GameEngine\\src\\main\\resources\\Models\\cube.obj");
         Texture texture = new Texture("C:\\Dev\\GameEngine\\src\\main\\resources\\Textures\\grass_block.png");
         Material material = new Material(texture);
 
-        mesh.setMaterial(material);
-        GameItem gameItem = new GameItem(mesh);
-        gameItem.setScale(0.5f);
-        gameItem.setPosition(0f,0,-2);
-        gameItems = new GameItem[] {gameItem};
+        int terrainSize = 1;
+        cubeMesh.setMaterial(material);
+//        GameItem gameItem = new GameItem(mesh);
+//        gameItem.setScale(1.0f);
+//        gameItem.setPosition(0f,0,-2);
+//        gameItems = new GameItem[] {gameItem};
+        Terrain terrain = new Terrain(cubeMesh, terrainSize);
+        gameItems = terrain.generateTerrain();
+        Mesh bunnyMesh = OBJLoader.loadMesh("C:\\Dev\\GameEngine\\src\\main\\resources\\Models\\bunny.obj");
+        BunnyGenerator bg = new BunnyGenerator(bunnyMesh, terrainSize);
+        gameItems.addAll(bg.generateBunnies());
+
+        sceneLight = new SceneLight();
+
+        //Set Ambient Light
+        sceneLight.setAmbientLight(new Vector3f(0.3f, 0.3f,0.3f));
 
         //Point Light 1
-        ambientLight = new Vector3f(0.4f,0.4f,0.4f);
         Vector3f lightColour = new Vector3f(0.1f,0.1f,0.9f);
         Vector3f lightPosition = new Vector3f(0.3f,0,2);
         float lightIntensity = 1.0f;
@@ -84,7 +104,11 @@ public class DummyGame implements IGameLogic {
         lightIntensity = 1.0f;
         PointLight pointLight1 = new PointLight(lightColour, lightPosition, lightIntensity);
         pointLight1.setAttenuation(att);
-        pointLightList = new PointLight[] {pointLight, pointLight1};
+        pointLightList = new Vector<PointLight>();
+        pointLightList.add(pointLight);
+        pointLightList.add(pointLight1);
+        sceneLight.setPointLightList(pointLightList);
+
 
         //Spot Light
         lightPosition = new Vector3f(0, 0, 10);
@@ -94,12 +118,17 @@ public class DummyGame implements IGameLogic {
         Vector3f coneDir = new Vector3f(0,0,-1);
         float cutoff = (float) Math.cos(Math.toRadians(140));
         SpotLight spotLight = new SpotLight(sl_pointLight, coneDir, cutoff);
-        spotLightList = new SpotLight[] {spotLight};
+        spotLightList = new Vector<SpotLight>();
+        spotLightList.add(spotLight);
+        sceneLight.setSpotLightList(spotLightList);
 
         //Directional Light
         lightPosition = new Vector3f(-1, 0,0);
         lightColour = new Vector3f(1,1,1);
         directionalLight = new DirectionalLight(lightColour, lightPosition, lightIntensity);
+        sceneLight.setDirectionalLight(directionalLight);
+
+        hud = new Hud(window,"BUNNY");
     }
 
     @Override
@@ -121,17 +150,17 @@ public class DummyGame implements IGameLogic {
             cameraInc.y = 1;
         }
 
-        float lightPos = pointLightList[0].getPosition().z;
+        float lightPos = pointLightList.get(0).getPosition().z;
         //System.out.println(lightPos);
         if(window.isKeyPressed(GLFW_KEY_N))
         {
-            this.pointLightList[0].getPosition().z = lightPos + 0.001f;
-            this.pointLightList[1].getPosition().z = lightPos + 0.001f;
+            this.pointLightList.get(0).getPosition().z = lightPos + 0.001f;
+            this.pointLightList.get(1).getPosition().z = lightPos + 0.001f;
         }
         else if(window.isKeyPressed(GLFW_KEY_M))
         {
-            this.pointLightList[0].getPosition().z = lightPos - 0.001f;
-            this.pointLightList[1].getPosition().z = lightPos - 0.001f;
+            this.pointLightList.get(0).getPosition().z = lightPos - 0.001f;
+            this.pointLightList.get(1).getPosition().z = lightPos - 0.001f;
         }
     }
 
@@ -160,7 +189,7 @@ public class DummyGame implements IGameLogic {
             spotInc = 1;
         }
         double spotAngleRad = Math.toRadians(spotAngle);
-        Vector3f coneDir = spotLightList[0].getConeDirection();
+        Vector3f coneDir = spotLightList.get(0).getConeDirection();
         coneDir.y = (float) Math.sin(spotAngleRad);
 
         //Update Directional light
@@ -190,7 +219,7 @@ public class DummyGame implements IGameLogic {
     @Override
     public void render(Window window)
     {
-        renderer.render(window,camera, gameItems, ambientLight, pointLightList, spotLightList, directionalLight);
+        renderer.render(window, camera, gameItems, sceneLight, hud);
         window.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     }
     @Override
