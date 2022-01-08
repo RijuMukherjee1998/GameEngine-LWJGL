@@ -31,7 +31,6 @@ public class MouseInput {
 
         glfwSetCursorEnterCallback(window.getWindowHandle(), (windowHandle, entered) ->
         {
-                System.out.println(entered);
                 inWindow = entered;
         });
 

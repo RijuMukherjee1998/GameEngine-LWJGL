@@ -82,7 +82,6 @@ public class Renderer {
             window.setResized(false);
         }
 
-        System.out.println(sceneLight);
         renderScene(window, camera, gameItems, sceneLight);
 
         renderHud(window, hud);

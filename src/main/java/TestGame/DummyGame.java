@@ -151,7 +151,7 @@ public class DummyGame implements IGameLogic {
         }
 
         float lightPos = pointLightList.get(0).getPosition().z;
-        //System.out.println(lightPos);
+
         if(window.isKeyPressed(GLFW_KEY_N))
         {
             this.pointLightList.get(0).getPosition().z = lightPos + 0.001f;
@@ -171,7 +171,6 @@ public class DummyGame implements IGameLogic {
         //Update camera based on mouse
         if(mouseInput.isRightButtonPressed()) {
             Vector2f rotVec = mouseInput.getDisplVec();
-            System.out.println(mouseInput.getDisplVec());
             camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0);
         }
 
